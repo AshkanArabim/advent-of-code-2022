@@ -1,3 +1,4 @@
 *.exe
 testbench.cpp
 test.txt
+.vscode/
