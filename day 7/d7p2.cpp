@@ -3,6 +3,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <limits>
 using namespace std;
 
 // one Node in file-tree
@@ -40,24 +41,36 @@ class Node {
   void addChild(Node* nodePointer) { children.push_back(nodePointer); }
 };
 
+int getSmallestValid(vector<int>* vec, int neededspace) { // works!
+  // maximum amount that fits in int
+  int smallestValid = numeric_limits<int>::max(); 
+
+  for (int i = 0; i < vec->size(); i++) {
+    int value = (*vec)[i];
+    if (value >= neededspace && value < smallestValid) {
+      smallestValid = value;
+    }
+  }
+
+  return smallestValid;
+}
+
 // function to traverse tree from root and add all folder sizes under 100,000
-int getItemSize(Node* node, int* answer) {
+int getItemSize(Node* node, vector<int>* sizes) {
   if (node->size != -1) { // base case: if it's a file
     // cout << "node size: " << node->size << endl; // DEBUG --> works
     return node->size; 
-  } else { // recursive case
+  } else { // recursive case: if it's a directory
     // cout << node->name << endl; // DEBUG --> works
     int dirSize = 0;
     for (int i = 0; i < node->children.size(); i++) { // loop over children
       Node* currentChild = node->children[i];
-      dirSize += getItemSize(currentChild, answer); // add item size to sum
+      dirSize += getItemSize(currentChild, sizes); // add item size to sum
     }
 
     // check size for activity answer
-    if (dirSize <= 100000) {
-      // cout << dirSize << endl; // DEBUG
-      *answer += dirSize; 
-    }
+    // cout << dirSize << endl; // DEBUG
+    (*sizes).push_back(dirSize);
 
     return dirSize;
   }  
@@ -99,13 +112,16 @@ int main() {
     // we'll ignore "$ ls"
   }
 
-  // phase 2: traverse and add valid sizes
+  // phase 2: accumulate all valid sizes in a vector, then find the smallest
   // quick and super nasty: just pass in a pointer
-  int* answer = new int(0);
-  getItemSize(&root, answer);
-  // cout << getItemSize(&root, answer) << endl; // DEBUG --> works
-  cout << *answer << endl;
-  delete answer; // preventing memory leaks. just to practice. 
+  vector<int> sizes;
+  // get size of all files combined
+  int usedspace = getItemSize(&root, &sizes); 
+  int freespace = 70000000 - usedspace;
+  int neededspace = 30000000 - freespace;
 
+  int answer = getSmallestValid(&sizes, neededspace);
+  cout << answer << endl;
+  
   return 0;
 }
