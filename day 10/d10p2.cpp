@@ -45,7 +45,6 @@ int main() {
     }
   }
 
-  // TODO: render screen
   for (int i = 0; i < screen.size(); i++) {
     for (int j = 0; j < screen[i].size(); j++) {
       std::cout << screen[i][j];
