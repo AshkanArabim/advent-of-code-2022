@@ -10,7 +10,8 @@ class Cell {
   int height = 0;
 
  public:
-  int distance = std::numeric_limits<int>::max();
+  // I divide just to make it fit for debugging
+  int distance = std::numeric_limits<int>::max() / 10000; 
   bool visited = false;
 
   std::array<int, 2> getTop() {
@@ -123,7 +124,6 @@ int main() {
   // phase 1: parse
   std::vector<std::vector<Cell>> grid(1);  // defaluts to one row, no cols
   std::array<int, 2> startCoords;
-  std::array<int, 2> endCoords;
   char c;
   int rowCount = 0;
   int colCount = 0;
@@ -136,12 +136,10 @@ int main() {
     } else {
       int height = getHeightNum(c);
       Cell newCell = Cell(rowCount, colCount, height);
-      if (c == 'S') {
+      if (c == 'E') {
         startCoords = newCell.getCoords();
         newCell.visited = true;
         newCell.distance = 0;  // set distance of first cell to 0
-      } else if (c == 'E') {
-        endCoords = newCell.getCoords();
       }
       grid[rowCount].push_back(newCell);
       colCount++;
@@ -153,6 +151,7 @@ int main() {
 
   // phase 2: calculate distance
   std::vector<Cell> cellsToVisit = {getCell(grid, startCoords)};
+  int shortest = std::numeric_limits<int>::max();  // stores shortest path to 0
   while (cellsToVisit.size() != 0) {
     Cell& currentCell = cellsToVisit[0];
     // std::cout << &currentCell << std::endl; // DEBUG: get memory location
@@ -162,6 +161,11 @@ int main() {
     // << std::endl;                                     // DEBUG
     // cellStats(currentCell);                                     // DEBUG
     // std::cout << "^^^" << std::endl;                            // DEBUG
+
+    // if current cell is lowest elevation
+    if (currentCell.getHeight() == 0 && currentCell.distance < shortest) {
+      shortest = currentCell.distance;
+    }
 
     // check children
     std::array<std::array<int, 2>, 4> neighbors = {
@@ -176,16 +180,16 @@ int main() {
       Cell& nextCell = getCell(grid, neighbors[i]);
 
       // if unclimbable, skip
-      if (nextCell.getHeight() > currentCell.getHeight() + 1) {
+      if (nextCell.getHeight() < currentCell.getHeight() - 1) {
         continue;
       }
 
       // check if next cell is not visited or distance is shorter than before
       if (!nextCell.visited || nextCell.distance > currentCell.distance + 1) {
         // std::cout << "added to cellsToVisit" << std::endl;  // DEBUG
-        // std::cout << "was it visited? " << nextCell.visited << std::endl;  // DEBUG
-        // std::cout << "old distance: " << nextCell.distance << std::endl;  // DEBUG
-        // std::cout << "new distance: " << currentCell.distance + 1 << std::endl;  // DEBUG
+        // std::cout << "was it visited? " << nextCell.visited << std::endl;  // DEBUG 
+        // std::cout << "old distance: " << nextCell.distance << std::endl;  // DEBUG 
+        // std::cout << "new distance: " << currentCell.distance + 1 << std::endl; // DEBUG
 
         nextCell.distance = currentCell.distance + 1;
         nextCell.visited = true;
@@ -197,9 +201,9 @@ int main() {
     cellsToVisit.erase(cellsToVisit.begin());
   }
 
-  distanceMapper(grid);  // DEBUG 
-  // printGrid(grid);       // DEBUG 
+  // distanceMapper(grid);  // DEBUG
+  // printGrid(grid);       // DEBUG
   // gridStats(grid);       // DEBUG
 
-  std::cout << getCell(grid, endCoords).distance << std::endl;
+  std::cout << shortest << std::endl;
 }
